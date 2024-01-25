@@ -68,9 +68,9 @@ def get_latest_deep_learning_ami(region_name='us-east-1'):
     return images[0]['ImageId'] if images else None
 
 
-def determine_architecture(instance_type):
+def determine_architecture(instance_type,regionval):
     if instance_type is not None:
-        ec2client = boto3.client('ec2', region_name='us-east-1')
+        ec2client = boto3.client('ec2', region_name=regionval)
         response = ec2client.describe_instance_types(InstanceTypes=[instance_type])
         #should return a list of architectures. I only care about 'x86_64' or 'arm64'
         architectures = response['InstanceTypes'][0]['ProcessorInfo']['SupportedArchitectures']
@@ -130,8 +130,12 @@ class LlamaAnywhereStack(Stack):
         bucket_name="llama-anywhere-bucket"+str(uuid.uuid4()).replace("-","").replace("_","")
         # Define a new S3 Bucket
         bucket = s3.Bucket(self, "MyBucket",bucket_name=bucket_name)
+        # Correctly setting the desired_az variable
+        desired_az = f"{regionval}c"
 
-        vpc = ec2.Vpc(self, "MyVPC", max_azs=2)
+        # Now use desired_az as part of a list in the availability_zones argument
+        vpc = ec2.Vpc(self, "MyVPC", #max_azs=2)
+                    availability_zones=[desired_az])
 
         # Define a new IAM Role with S3 full access policy
         role = iam.Role(self, "MyRole",
@@ -163,7 +167,7 @@ class LlamaAnywhereStack(Stack):
         IMAGEID=None
         GPUINSTANCE=False
         #This will give us the ability to automatically get an EC2 instance with the appropriate drivers and gpu availability installed. 
-        architecture = determine_architecture(instance_type)
+        architecture = determine_architecture(instance_type,regionval)
         if instance_type is not None:
             instanceclass=instance_type.split('.')[0]
             if instanceclass in gpu_instances:

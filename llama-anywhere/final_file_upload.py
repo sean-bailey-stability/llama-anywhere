@@ -66,9 +66,9 @@ class ProgressPercentage(object):
     def close(self):
         self._progress_bar.close()
 
-def get_public_ip(stack_name):
+def get_public_ip(stack_name,region):
     # Create a client for the AWS CloudFormation service
-    cloudformation = boto3.client('cloudformation')
+    cloudformation = boto3.client('cloudformation',region_name=region)
 
     # Get the details of the stack
     stack = cloudformation.describe_stacks(StackName=stack_name)
@@ -89,7 +89,7 @@ def is_url(path):
     except ValueError:
         return False
 
-def multipart_upload_with_s3(file_path, bucket_name, key_name):
+def multipart_upload_with_s3(file_path, bucket_name, key_name,region):
     # Multipart upload
     config = boto3.s3.transfer.TransferConfig(
         multipart_threshold=1024 * 25, # 25MB
@@ -98,7 +98,7 @@ def multipart_upload_with_s3(file_path, bucket_name, key_name):
         use_threads=True
     )
 
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3',region_name=region)
     progress = ProgressPercentage(file_path)
 
     try:
@@ -127,6 +127,7 @@ def main():
     parser.add_argument("--port", default='8080', help="The port to use")
     parser.add_argument("--context", default=2048, type=int, help="Context")
     parser.add_argument("--tokenresponse", default=512, type=int, help="Token response")
+    parser.add_argument("--region",default="us-east-1",type=str,help="AWS region code for this")
 
     # parse the arguments
     args = parser.parse_args()
@@ -134,14 +135,15 @@ def main():
     port = args.port
     CONTEXT = args.context
     TOKENRESPONSE = args.tokenresponse
+    REGION = args.region
     #LOCALMODEL="/Users/seanbailey/Github/llama-anywhere/llama2-testmodel.bin" #we pull this from the cloudformation stack.
     # Invocation payload needs to be standardized and pulled from a file of some sort.
     
     # Create a session using your current profile, or default if not provided
-    session = boto3.Session()
+    session = boto3.Session(region_name=REGION)
 
     # Create a CloudFormation client
-    cf = session.client('cloudformation')
+    cf = session.client('cloudformation',region_name=REGION)
 
     # Get stack details
     response = cf.describe_stacks(StackName=STACKNAME)
@@ -175,7 +177,7 @@ def main():
         instancetype = instancetype['OutputValue']
     else:
         logger.info("instancetype not found in outputs")
-    public_ip="http://"+get_public_ip(STACKNAME)+":"+port
+    public_ip="http://"+get_public_ip(STACKNAME,REGION)+":"+port
     # Now bucket_name contains the outputted bucket name
     logger.info(public_ip)
     logger.info(bucket_name)
@@ -185,7 +187,7 @@ def main():
     logger.info(instancetype)
 
     # Use bucket_name for your file upload operation
-    s3_client = session.client('s3')
+    s3_client = session.client('s3',region_name=REGION)
 
     #with open(LOCALMODEL, 'rb') as data:
     #    s3_client.upload_fileobj(data, bucket_name, LOCALMODEL.split("/")[-1])
@@ -199,7 +201,7 @@ def main():
     }
         if not is_url(selectedmodel):
 
-            multipart_upload_with_s3(selectedmodel, bucket_name, selectedmodel.split("/")[-1])
+            multipart_upload_with_s3(selectedmodel, bucket_name, selectedmodel.split("/")[-1],REGION)
 
             logger.info("Uploaded model to s3, now testing the endpoint...")
             config_payload['bucket']=bucket_name

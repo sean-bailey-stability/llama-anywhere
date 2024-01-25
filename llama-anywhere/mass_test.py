@@ -393,13 +393,14 @@ def delete_buckets_with_prefix(prefix):
 
 
 
-def run_shell_script(deploytype, port, model, instance_type,hftoken):
+def run_shell_script(deploytype, port, model, instance_type,hftoken,regionvalue):
     command = ["bash", "end2endtest.sh", 
                "-d", deploytype, 
                "-p", str(port), 
                "-m", model, 
                "-i", instance_type,
-               '-h',hftoken]
+               '-h',hftoken,
+               '-r',regionvalue]
     subprocess.check_call(command)
 
 def main():
@@ -410,6 +411,7 @@ def main():
     parser.add_argument("--instanceclass",type=str,default=None,required=False, help="Specify the instance class to select from. Selects random at default. Choose from 'gpu_instances','m_instances','t_instances','r_instances','c_instances','all', " )
     parser.add_argument("--instancecount",type=int,default=10,required=False, help="Specify the number of instances you want to pull from the instance class. Default 10" )
     parser.add_argument("--hftoken",type=str,default="",required=False,help="Token for huggingface in order to download private models.")
+    parser.add_argument("--region",type=str,default="us-east-1",required=False,help="The region to run this operation in.")
 
     args = parser.parse_args()
     port = 8080
@@ -427,8 +429,8 @@ def main():
                 run_powershell_script('f', port, args.foundationmodel, instance_type,args.hftoken)
                 run_powershell_script('q', port, args.quantizedmodel, instance_type,args.hftoken)
             else:
-                run_shell_script('f', port, args.foundationmodel, instance_type,args.hftoken)
-                run_shell_script('q', port, args.quantizedmodel, instance_type,args.hftoken)
+                run_shell_script('f', port, args.foundationmodel, instance_type,args.hftoken,regionvalue=args.region)
+                run_shell_script('q', port, args.quantizedmodel, instance_type,args.hftoken,regionvalue=args.region)
         except:
             print(traceback.format_exc())
         delete_buckets_with_prefix('llama-anywhere-bucket')
