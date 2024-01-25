@@ -13,9 +13,9 @@ try:
     print(SAVEPATH)
     print(MODEL)
 
-    #pipe=pipeline(task="text-generation",model=MODEL, trust_remote_code=True)
-    tokenizer = AutoTokenizer.from_pretrained(MODEL,cache_dir=SAVEPATH,trust_remote_code=True)
-    model = AutoModel.from_pretrained(MODEL,cache_dir=SAVEPATH,trust_remote_code=True)
+    pipe=pipeline(task="text-generation",model=MODEL, trust_remote_code=True)
+    #tokenizer = AutoTokenizer.from_pretrained(MODEL,cache_dir=SAVEPATH,trust_remote_code=True)
+    #model = AutoModel.from_pretrained(MODEL,cache_dir=SAVEPATH,trust_remote_code=True)
     #I'm hoping that this will download to the appropriate local directory and it will check there first. Who knows?
 except:
     print(traceback.format_exc())
