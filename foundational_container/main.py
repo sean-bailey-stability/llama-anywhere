@@ -22,10 +22,10 @@ from pydantic import BaseModel, validator
 MODEL_TYPE=os.environ.get("MODEL_TYPE")
 SAVEPATH=os.environ.get("SAVE_PATH")
 STAGE = os.environ.get('STAGE', None)
-OPENAPI_PREFIX = f"/{STAGE}" if STAGE else "/"
+#OPENAPI_PREFIX = f"/{STAGE}" if STAGE else "/"
 HF_AUTH_TOKEN=os.environ.get('HF_AUTH_TOKEN')
 
-app = FastAPI(title="Sagemaker Endpoint LLM API for HuggingFace Models", openapi_prefix=OPENAPI_PREFIX)
+app = FastAPI(title="Sagemaker Endpoint LLM API for HuggingFace Models")#, openapi_prefix=OPENAPI_PREFIX)
 
 
 if HF_AUTH_TOKEN is not None:
@@ -111,11 +111,6 @@ class ModelArguments(BaseModel):
     output_hidden_states: bool = False
     output_scores: bool = False
     return_dict_in_generate: bool = False
-
-    # Special tokens parameters
-    #pad_token_id: Optional[int] = None
-    #bos_token_id: Optional[int] = None
-    #eos_token_id: Optional[int] = None
 
     # Encoder-decoder exclusive parameters
     encoder_no_repeat_ngram_size: int = 0
