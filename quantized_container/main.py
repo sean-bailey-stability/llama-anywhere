@@ -15,9 +15,9 @@ from urllib.parse import urlparse
 
 MODELPATH=os.environ.get('MODELPATH')
 STAGE = os.environ.get('STAGE', None)
-OPENAPI_PREFIX = f"/{STAGE}" if STAGE else "/"
 
-app = FastAPI(title="Sagemaker Endpoint LLM API", openapi_prefix=OPENAPI_PREFIX)
+
+app = FastAPI(title="Sagemaker Endpoint LLM API")
 llm = None #What we're going to do here is set up a simple system that allows you to specify any llama.cpp model you'd like. #Llama(model_path=MODELPATH, verbose=False)  # Instantiate the model at the beginning to make responses faster
 
 class LlamaModelConfig(BaseModel):
